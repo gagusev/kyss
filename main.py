@@ -38,14 +38,59 @@ class Stack:
             values.append(str(current.data))
             current = current.next
         return f'Stack <{id(self)}>: [{'] -> ['.join(values)}];'
+    
+class Set:
+    def __init__(self):
+        self.stack = Stack()
 
-stack = Stack()
-print(stack)
-stack.push(42)
-stack.push('42')
-stack.push(4.2)
-print(stack)
-print(f'Value we pop out: {stack.pop()};')
-print(stack)
-print(f'Value we peek: {stack.peek()};')
-print(stack)
+    def add(self, element):
+        current = self.stack.top
+        while current:
+            if current.data == element:
+                return
+            current = current.next
+        self.stack.push(element)
+
+    def remove(self, element):
+        current = self.stack.top
+        prev = None
+        while current:
+            if current.data == element:
+                if prev:
+                    prev.next = current.next
+                else:
+                    self.stack.top = current.next
+                return
+            prev = current
+            current = current.next
+        print(f'element {element} not found in the set')
+
+    def contains(self, element):
+        current = self.stack.top
+        while current:
+            if current.data == element:
+                return True
+            current = current.next
+        return False
+
+    def __str__(self):
+        values = []
+        current = self.stack.top
+        while current:
+            values.append(str(current.data))
+            current = current.next
+        return f'Set <{id(self)}>: ({', '.join(values)});'
+
+test_set = Set()
+print(test_set)
+test_set.add(42)
+test_set.add('42')
+test_set.add(4.2)
+print(test_set)
+print('Now we remove 4.2!')
+test_set.remove(4.2)
+print('I wonder if it\'s still there...')
+print('Let\'s ask our data structure right away!')
+print(f'> {test_set.contains(4.2)}.')
+print('Quod erat demonstrandum.')
+print(test_set)
