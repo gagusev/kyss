@@ -80,17 +80,57 @@ class Set:
             values.append(str(current.data))
             current = current.next
         return f'Set <{id(self)}>: ({', '.join(values)});'
+    
+def is_latin_string(s):
+    return all(char.isalpha() or char.isspace() for char in s)
+
+def caesar_cipher_set(input_set, shift=3):
+    encrypted_set = Set()
+    current = input_set.stack.top
+    while current:
+        element = current.data
+        if not isinstance(element, str):
+            print(f'set element \'{element}\' is not a string')
+        if not is_latin_string(element):
+            print(f'set element \'{element}\' contains non-Latin characters')
+        encrypted_element = ''.join(
+            chr(((ord(char) - 97 + shift) % 26) + 97) if char.islower() else
+            chr(((ord(char) - 65 + shift) % 26) + 65) if char.isupper() else
+            char
+            for char in element
+        )
+        encrypted_set.add(encrypted_element)
+        current = current.next
+    return encrypted_set
+
+def atbash_cipher_set(input_set):
+    atbash_set = Set()
+    current = input_set.stack.top
+    while current:
+        element = current.data
+        if not isinstance(element, str):
+            raise print(f'set element \'{element}\' is not a string')
+        if not is_latin_string(element):
+            raise print(f'set element \'{element}\' contains non-Latin characters')
+        atbash_element = ''.join(
+            chr(155 - ord(char)) if char.isupper() else
+            chr(219 - ord(char)) if char.islower() else
+            char
+            for char in element
+        )
+        atbash_set.add(atbash_element)
+        current = current.next
+    return atbash_set
 
 test_set = Set()
+test_set.add('long live the king')
+test_set.add('The king is dead')
 print(test_set)
-test_set.add(42)
-test_set.add('42')
-test_set.add(4.2)
-print(test_set)
-print('Now we remove 4.2!')
-test_set.remove(4.2)
-print('I wonder if it\'s still there...')
-print('Let\'s ask our data structure right away!')
-print(f'> {test_set.contains(4.2)}.')
-print('Quod erat demonstrandum.')
-print(test_set)
+print('Ah what a set!')
+print('Let\'s run it through a Caesar cipher:')
+print(caesar_cipher_set(test_set))
+print('And what about an Atbash one?')
+print(atbash_cipher_set(test_set))
+print('So who\'s gonna stop as from layering both ciphers now??')
+print('\033[30;103mScience isn\'t about WHY, it\'s about WHY NOT!\033[0m')
+print(atbash_cipher_set(caesar_cipher_set(test_set)))
