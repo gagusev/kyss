@@ -1,5 +1,28 @@
 import sys
 
+sys.tracebacklimit = 0
+
+class StackError(Exception):
+    def __init__(self, original_exception):
+        super().__init__(f"Error occurred in Stack operation: {str(original_exception)}")
+        self.original_exception = original_exception
+
+class CipheringError(Exception):
+    def __init__(self, original_exception, element):
+        super().__init__(f"Error occurred while ciphering element '{element}': {str(original_exception)}")
+        self.original_exception = original_exception
+        self.element = element
+
+class SetError(Exception):
+    def __init__(self, original_exception, operation, element=None):
+        if element:
+            super().__init__(f"Error occurred in Set operation '{operation}' with element '{element}': {str(original_exception)}")
+        else:
+            super().__init__(f"Error occurred in Set operation '{operation}': {str(original_exception)}")
+        self.original_exception = original_exception
+        self.operation = operation
+        self.element = element
+
 class StackNode:
     def __init__(self, data):
         self.data = data
@@ -16,21 +39,30 @@ class Stack:
         return self.top is None
 
     def push(self, data):
-        new_node = StackNode(data)
-        new_node.next = self.top
-        self.top = new_node
-
+        try:
+            new_node = StackNode(data)
+            new_node.next = self.top
+            self.top = new_node
+        except Exception as e:
+            raise StackError(e)
+        
     def pop(self):
-        if self.is_empty():
-            raise IndexError('pop from empty stack')
-        popped_node = self.top
-        self.top = self.top.next
-        return popped_node.data
+        try:
+            if self.is_empty():
+                raise IndexError('pop from empty stack')
+            popped_node = self.top
+            self.top = self.top.next
+            return popped_node.data
+        except Exception as e:
+            raise StackError(e)
 
     def peek(self):
-        if self.is_empty():
-            raise KeyError('peek from empty stack')
-        return self.top.data
+        try:
+            if self.is_empty():
+                raise KeyError('peek from empty stack')
+            return self.top.data
+        except Exception as e:
+            raise StackError(e)
 
     def __str__(self):
         values = []
@@ -45,34 +77,43 @@ class Set:
         self.stack = Stack()
 
     def add(self, element):
-        current = self.stack.top
-        while current:
-            if current.data == element:
-                return
-            current = current.next
-        self.stack.push(element)
+        try:
+            current = self.stack.top
+            while current:
+                if current.data == element:
+                    return
+                current = current.next
+            self.stack.push(element)
+        except Exception as e:
+            raise SetError(e, 'add', element)
 
     def remove(self, element):
-        current = self.stack.top
-        prev = None
-        while current:
-            if current.data == element:
-                if prev:
-                    prev.next = current.next
-                else:
-                    self.stack.top = current.next
-                return
-            prev = current
-            current = current.next
-        raise KeyError(f'element {element} not found in the set')
+        try:
+            current = self.stack.top
+            prev = None
+            while current:
+                if current.data == element:
+                    if prev:
+                        prev.next = current.next
+                    else:
+                        self.stack.top = current.next
+                    return
+                prev = current
+                current = current.next
+            raise KeyError(f'element {element} not found in the set')
+        except Exception as e:
+            raise SetError(e, 'remove', element)
 
     def contains(self, element):
-        current = self.stack.top
-        while current:
-            if current.data == element:
-                return True
-            current = current.next
-        return False
+        try:
+            current = self.stack.top
+            while current:
+                if current.data == element:
+                    return True
+                current = current.next
+            return False
+        except Exception as e:
+            raise SetError(e, 'contains', element)
 
     def __str__(self):
         values = []
@@ -91,14 +132,18 @@ def apply_cipher(func):
         current = input_set.stack.top
         while current:
             element = current.data
-            if not isinstance(element, str):
-                raise ValueError(f'set element \'{element}\' is not a string')
-            if not is_latin_string(element):
-                raise ValueError(f'set element \'{element}\' contains non-Latin characters')
-            encrypted_set.add(func(element, **kwargs))
+            try:
+                if not isinstance(element, str):
+                    raise ValueError(f'set element \'{element}\' is not a string')
+                if not is_latin_string(element):
+                    raise ValueError(f'set element \'{element}\' contains non-Latin characters')
+                encrypted_set.add(func(element, **kwargs))
+            except Exception as e:
+                raise CipheringError(e, element)
             current = current.next
         return encrypted_set
     return wrapper
+
 
 @apply_cipher
 def caesar_cipher_set(element, shift=3):
@@ -119,4 +164,5 @@ def atbash_cipher_set(element):
     )
 
 test_set = Set()
-test_set.remove(42)
+test_set.add(42)
+print(caesar_cipher_set(test_set))
