@@ -1,3 +1,5 @@
+import sys
+
 class StackNode:
     def __init__(self, data):
         self.data = data
@@ -20,15 +22,14 @@ class Stack:
 
     def pop(self):
         if self.is_empty():
-            print('pop from empty stack')
+            raise IndexError('pop from empty stack')
         popped_node = self.top
         self.top = self.top.next
         return popped_node.data
 
     def peek(self):
         if self.is_empty():
-            print('peek from empty stack')
-            return None
+            raise KeyError('peek from empty stack')
         return self.top.data
 
     def __str__(self):
@@ -63,7 +64,7 @@ class Set:
                 return
             prev = current
             current = current.next
-        print(f'element {element} not found in the set')
+        raise KeyError(f'element {element} not found in the set')
 
     def contains(self, element):
         current = self.stack.top
@@ -91,9 +92,9 @@ def apply_cipher(func):
         while current:
             element = current.data
             if not isinstance(element, str):
-                print(f'set element \'{element}\' is not a string')
+                raise ValueError(f'set element \'{element}\' is not a string')
             if not is_latin_string(element):
-                print(f'set element \'{element}\' contains non-Latin characters')
+                raise ValueError(f'set element \'{element}\' contains non-Latin characters')
             encrypted_set.add(func(element, **kwargs))
             current = current.next
         return encrypted_set
@@ -118,14 +119,4 @@ def atbash_cipher_set(element):
     )
 
 test_set = Set()
-test_set.add('long live the king')
-test_set.add('The king is dead')
-print(test_set)
-print('Ah what a set!')
-print('Let\'s run it through a Caesar cipher:')
-print(caesar_cipher_set(test_set))
-print('And what about an Atbash one?')
-print(atbash_cipher_set(test_set))
-print('So who\'s gonna stop as from layering both ciphers now??')
-print('\033[30;103mScience isn\'t about WHY, it\'s about WHY NOT!\033[0m')
-print(atbash_cipher_set(caesar_cipher_set(test_set)))
+test_set.remove(42)
