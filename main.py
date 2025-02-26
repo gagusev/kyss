@@ -84,43 +84,38 @@ class Set:
 def is_latin_string(s):
     return all(char.isalpha() or char.isspace() for char in s)
 
-def caesar_cipher_set(input_set, shift=3):
-    encrypted_set = Set()
-    current = input_set.stack.top
-    while current:
-        element = current.data
-        if not isinstance(element, str):
-            print(f'set element \'{element}\' is not a string')
-        if not is_latin_string(element):
-            print(f'set element \'{element}\' contains non-Latin characters')
-        encrypted_element = ''.join(
-            chr(((ord(char) - 97 + shift) % 26) + 97) if char.islower() else
-            chr(((ord(char) - 65 + shift) % 26) + 65) if char.isupper() else
-            char
-            for char in element
-        )
-        encrypted_set.add(encrypted_element)
-        current = current.next
-    return encrypted_set
+def apply_cipher(func):
+    def wrapper(input_set, **kwargs):
+        encrypted_set = Set()
+        current = input_set.stack.top
+        while current:
+            element = current.data
+            if not isinstance(element, str):
+                print(f'set element \'{element}\' is not a string')
+            if not is_latin_string(element):
+                print(f'set element \'{element}\' contains non-Latin characters')
+            encrypted_set.add(func(element, **kwargs))
+            current = current.next
+        return encrypted_set
+    return wrapper
 
-def atbash_cipher_set(input_set):
-    atbash_set = Set()
-    current = input_set.stack.top
-    while current:
-        element = current.data
-        if not isinstance(element, str):
-            raise print(f'set element \'{element}\' is not a string')
-        if not is_latin_string(element):
-            raise print(f'set element \'{element}\' contains non-Latin characters')
-        atbash_element = ''.join(
-            chr(155 - ord(char)) if char.isupper() else
-            chr(219 - ord(char)) if char.islower() else
-            char
-            for char in element
-        )
-        atbash_set.add(atbash_element)
-        current = current.next
-    return atbash_set
+@apply_cipher
+def caesar_cipher_set(element, shift=3):
+    return ''.join(
+        chr(((ord(char) - 97 + shift) % 26) + 97) if char.islower() else
+        chr(((ord(char) - 65 + shift) % 26) + 65) if char.isupper() else
+        char
+        for char in element
+    )
+
+@apply_cipher
+def atbash_cipher_set(element):
+    return''.join(
+        chr(155 - ord(char)) if char.isupper() else
+        chr(219 - ord(char)) if char.islower() else
+        char
+        for char in element
+    )
 
 test_set = Set()
 test_set.add('long live the king')
